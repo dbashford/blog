@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
     
-    <title>Mimosa 2.0 Released, 2.1 Queued Up | DC-based web developer</title>
+    <title>Bumping require.js to latest, but not in Mimosa, yet | DC-based web developer</title>
     <meta name="description" content="Washington DC based Dad, UI architect, web developer and open source enthusiast. Creator of Mimosa." />
 
     <meta name="HandheldFriendly" content="True" />
@@ -26,7 +26,7 @@
 <link rel="alternate" type="application/rss+xml" title="David Bashford" href="../rss/index.html">
 <link rel="canonical" href="index.html" />
 </head>
-<body class="post-template tag-mimosa tag-mimosarelease">
+<body class="post-template">
 
     
 
@@ -51,7 +51,7 @@
  
 <main class="content" role="main">
 
-    <article class="post tag-mimosa tag-mimosarelease">
+    <article class="post">
 
         
 
@@ -60,37 +60,24 @@
         
         
 
-            <h1 class="post-title">Mimosa 2.0 Released, 2.1 Queued Up</h1>
-            <span class="post-meta">Published <time datetime="2014-01-26">January 26, 2014</time>. Tags: mimosa, mimosarelease</span>
+            <h1 class="post-title">Bumping require.js to latest, but not in Mimosa, yet</h1>
+            <span class="post-meta">Published <time datetime="2014-09-06">September 06, 2014</time>. </span>
             <section class="post-content">
-                <p>This week <a href="http://mimosa.io">Mimosa 2.0</a> was released. I'm exited to get this release out as it makes Mimosa leaner, meaner, easier to reason about for its users and its maintainer, and a ton easier to maintain long-term.</p>
+                <p>Earlier today I released version <code>3.0.0</code> of mimosa-require, but I will not be including that version as a default dependency of Mimosa yet.</p>
 
-<h3 id="compilerrefactor">Compiler Refactor</h3>
+<p>The version of mimosa-require included with Mimosa by default is <code>2.2.2</code>. The only significant difference between <code>2.2.2</code> and <code>3.0.0</code> is the version of require.js inside those modules.  <code>3.0.0</code> = require.js <code>2.1.14</code>, <code>2.2.2</code> = require.js <code>2.1.6</code>.</p>
 
-<p>The biggest change with this major release is the extraction of all of Mimosa's compilers out of Mimosa's core and into separate Mimosa modules. The only drawback of this change is that you now have to list your compilers in <code>mimosa-config</code>'s <code>modules</code> array. A little less magic isn't a bad thing.</p>
+<p>The story is long and complicated, but to keep it short, I won't be updating Mimosa to use require.js <code>2.1.14</code> by default until this bug is fixed: <a href='https://github.com/jrburke/r.js/issues/629'>https://github.com/jrburke/r.js/issues/629</a>.  That bug prevents users of Mimosa who take advantage of mimosa-require's <code>require.optimize.modules</code> config from running optimized builds. Running optimized builds with <code>require.optimize.modules</code> would result in require.js erroring out. A minority of Mimosa users likely use that config, but I want to keep Mimosa's defaults at versions that don't break apps.</p>
 
-<p>But the advantages are many.</p>
+<p>The latest require.js, <code>2.1.14</code>, contains all sorts of improvements over the version Mimosa is currently stuck at, <code>2.1.6</code>, including <code>wrapShim</code>.  If you are not using the <code>require.optimize.modules</code> config, I highly recommend updating your project to use mimosa-require <code>3.0.0</code>.</p>
 
-<ol>
-<li><p>It is now super easy to many compilers of your own. Before, a new compiler would have required a pull request to Mimosa. If you want to, for instance, create an <a href="https://github.com/dbashford/mimosa/issues/248">EmberScript compiler</a> well, that just got easier. And there are bunches of existing compiler modules to use as examples.</p></li>
-<li><p>Mimosa now takes a lot less time to download. I heard more than a few times that <code>npm install</code>ing Mimosa felt a bit like you were downloading all of NPM. Yanking out the compilers reduced install time by 60-70%. As more compilers get developed Mimosa's dependency bloat would have only worsened.</p></li>
-<li><p>Maintaining and impoving compilers can now happen apart from Mimosa itself. If a single compiler gets upgraded, it won't require a new version of Mimosa to be released.</p></li>
-<li><p>Mimosa core is smaller. The smaller and more modular it gets the less time I spend working on Mimosa's core and the more time I spend building out the modules my team and those others using Mimosa need.</p></li>
-</ol>
+<h2 id="whatshouldido">"What should I do?"</h2>
 
-<p>Some of the old config, like <code>compilers</code> and <code>templates.handlebars</code> has been moved to their logical locations. Each compiler manages its own extensions and overrides for the compiler library if specific versions are needed.</p>
+<p>Not using <code>require.optimize.modules</code>?  Then you should upgrade to <code>3.0.0</code>.  Using a specific version of a Mimosa module is easy.  Simply update your <code>mimosa-config.js</code> <code>modules</code> array to point at the new version.</p>
 
-<p>After having updated a dozen or so projects to <code>2.0</code> I can say that these changes generally mean less config and a config that makes more sense.</p>
+<p>In your <code>modules</code> array, update <code>"require"</code> to <code>"require@3.0.0"</code>.  Here's an example from the Ember skeleton: <a href='https://github.com/dbashford/MimosaEmberSkeleton/blob/master/mimosa-config.js#L26'>https://github.com/dbashford/MimosaEmberSkeleton/blob/master/mimosa-config.js#L26</a></p>
 
-<p>There were plenty of other tweaks and fixes. For a comprehensive list of all that went into <code>2.0</code>, check out the <a href="https://github.com/dbashford/mimosa/blob/master/RELEASENOTES.md">Release Notes</a>.</p>
-
-<h3 id="21">2.1</h3>
-
-<p>Work on <code>2.1</code> will start shortly and it'll be heavily logging focused. After not getting much love or attention since the beginning, there has been a lot of feedback that logging needs to get better and more flexible, <a href="https://github.com/dbashford/mimosa/issues?labels=2.1&amp;page=1&amp;state=open">and it will</a>.</p>
-
-<h3 id="feedback">Feedback</h3>
-
-<p>I love hearing what people are doing with Mimosa and helping folks through any trouble they may have. Shoot me a note <a href="https://twitter.com/mimosajs/">@mimosajs</a>, or hit the <a href="https://groups.google.com/forum/#!forum/mimosajs">Google Groups</a> or just make a <a href="https://github.com/dbashford/mimosa/issues">GitHub issue</a> to discuss what is on your mind.</p>
+<p>The next time you start up <code>mimosa watch</code> or <code>mimosa build</code> Mimosa will install version <code>3.0.0</code> of mimosa-require local to your project. Give that a shot: make the update and then re-run your optimized build to verify it still works.</p>
             </section>
             <footer class="post-footer">
 
@@ -101,7 +88,7 @@
         <div id="disqus_thread"></div>
          <script type="text/javascript">
              var disqus_shortname = 'dbashford'; // required: replace example with your forum shortname
-             var disqus_identifier = '3'; // make sure to use the post.id as an identifier, otherwise disqus will use the pages url per default, which might be problematic...
+             var disqus_identifier = '12'; // make sure to use the post.id as an identifier, otherwise disqus will use the pages url per default, which might be problematic...
 
              /* * * DON'T EDIT BELOW THIS LINE * * */
              (function() {

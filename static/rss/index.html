@@ -1,5 +1,320 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title><![CDATA[David Bashford]]></title><description><![CDATA[A web dev blog from a Washington DC based Dad, UI architect, web developer, and creator of <a href="http://mimosa.io">Mimosa</a>.]]></description><link>http://127.0.0.1:2368/</link><generator>Ghost v0.4.0</generator><lastBuildDate>Wed, 12 Mar 2014 00:53:33 GMT</lastBuildDate><atom:link href="http://127.0.0.1:2368/rss/" rel="self" type="application/rss+xml"/><author><![CDATA[David Bashford]]></author><ttl>60</ttl><item><title><![CDATA[ember.js, es6 modules, and some unfortunate transpiler behavior]]></title><description><![CDATA[<h3 id="itsembersfault">It's Ember's Fault</h3>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title><![CDATA[David Bashford]]></title><description><![CDATA[A web dev blog from a Washington DC based Dad, UI architect, web developer, and creator of <a href="http://mimosa.io">Mimosa</a>.]]></description><link>http://127.0.0.1:2368/</link><generator>Ghost v0.4.0</generator><lastBuildDate>Sat, 06 Sep 2014 18:20:47 GMT</lastBuildDate><atom:link href="http://127.0.0.1:2368/rss/" rel="self" type="application/rss+xml"/><author><![CDATA[David Bashford]]></author><ttl>60</ttl><item><title><![CDATA[Bumping require.js to latest, but not in Mimosa, yet]]></title><description><![CDATA[<p>Earlier today I released version <code>3.0.0</code> of mimosa-require, but I will not be including that version as a default dependency of Mimosa yet.</p>
+
+<p>The version of mimosa-require included with Mimosa by default is <code>2.2.2</code>. The only significant difference between <code>2.2.2</code> and <code>3.0.0</code> is the version of require.js inside those modules.  <code>3.0.0</code> = require.js <code>2.1.14</code>, <code>2.2.2</code> = require.js <code>2.1.6</code>.</p>
+
+<p>The story is long and complicated, but to keep it short, I won't be updating Mimosa to use require.js <code>2.1.14</code> by default until this bug is fixed: <a href='https://github.com/jrburke/r.js/issues/629' >https://github.com/jrburke/r.js/issues/629</a>.  That bug prevents users of Mimosa who take advantage of mimosa-require's <code>require.optimize.modules</code> config from running optimized builds. Running optimized builds with <code>require.optimize.modules</code> would result in require.js erroring out. A minority of Mimosa users likely use that config, but I want to keep Mimosa's defaults at versions that don't break apps.</p>
+
+<p>The latest require.js, <code>2.1.14</code>, contains all sorts of improvements over the version Mimosa is currently stuck at, <code>2.1.6</code>, including <code>wrapShim</code>.  If you are not using the <code>require.optimize.modules</code> config, I highly recommend updating your project to use mimosa-require <code>3.0.0</code>.</p>
+
+<h2 id="whatshouldido">"What should I do?"</h2>
+
+<p>Not using <code>require.optimize.modules</code>?  Then you should upgrade to <code>3.0.0</code>.  Using a specific version of a Mimosa module is easy.  Simply update your <code>mimosa-config.js</code> <code>modules</code> array to point at the new version.</p>
+
+<p>In your <code>modules</code> array, update <code>"require"</code> to <code>"require@3.0.0"</code>.  Here's an example from the Ember skeleton: <a href='https://github.com/dbashford/MimosaEmberSkeleton/blob/master/mimosa-config.js' #L26'>https://github.com/dbashford/MimosaEmberSkeleton/blob/master/mimosa-config.js#L26</a></p>
+
+<p>The next time you start up <code>mimosa watch</code> or <code>mimosa build</code> Mimosa will install version <code>3.0.0</code> of mimosa-require local to your project. Give that a shot: make the update and then re-run your optimized build to verify it still works.</p>]]></description><link>http://127.0.0.1:2368/bumping-require-js-but-not-for-mimosa-yet/</link><guid isPermaLink="false">7884ccd2-42da-4982-9af9-01039d349013</guid><dc:creator><![CDATA[David Bashford]]></dc:creator><pubDate>Sat, 06 Sep 2014 14:09:30 GMT</pubDate></item><item><title><![CDATA[Mimosa 2.3 Released]]></title><description><![CDATA[<p>Today I released Mimosa <code>2.3</code>.  After 21 point releases on <code>2.2</code>, this marks the first non-patch release in awhile.  Here's a quick rundown of what to expect.</p>
+
+<h3 id="fixforchromecsslivereload">Fix for Chrome + CSS Live Reload</h3>
+
+<p>Mimosa's live reload module is capable of updating CSS without needing to reload the page.  It does this by altering the URL to force a reload of the asset from the server.  When the asset is loaded the new CSS is reevaluated and the page is repainted.</p>
+
+<p>Some months back there were changes to how and when Chrome loaded, evaluated and repainted the page when CSS assets were updated. Chrome loads the updated CSS when expected, evaluates it, but does not affect a repaint unless the browser window has focus. If you have the browser behind your editor or on another monitor, you'd need to wave your mouse over Chrome to see the change happen. That is better than no live reload at all, but not not quite the same.</p>
+
+<p>It took a couple stabs at it before finally coming up with the right hack to get this back to normal. Previously a query parameter was tweaked to force the CSS to reload.  With the latest version of <a href='https://github.com/dbashford/mimosa-live-reload' >mimosa-live-reload</a> the query parameter was not cutting it.</p>
+
+<p>Now, just in Chrome (other browsers never stopped working) the CSS URLs are outright broken and then fixed. That convinces Chrome to do the repaint regardless of focus.</p>
+
+<p>The small downside of this is you'll see a 404 in your debugger for the split second.  But the net effect is the instant updating live reload you'd expect.</p>
+
+<h3 id="updatesformimosanew">Updates for <code>mimosa new</code></h3>
+
+<p>Since before <code>1.0</code> was released, very little has been changed for the <code>mimosa new</code> command.  It went through a minor refactor that didn't result in any functionality or behavior changes, but that's it.</p>
+
+<p>This release sees big updates to the servers you can get from <code>mimosa new</code>.</p>
+
+<h4 id="gettinghapi">Getting Hapi</h4>
+
+<p><a href='http://hapijs.com/' >Hapi</a> has been added as a server option. I've been playing around with Hapi myself and have enjoyed working with it. Now with <code>mimosa new</code> you can get a Hapi server delivered and ready to go for any of the 6 server templating options <code>mimosa new</code> supports.  </p>
+
+<script src='https://gist.github.com/dbashford/9ae1268561e88cdbd883.js' ></script>
+
+<p>Additionally a <a href='https://github.com/rclayton/mimosa-browserify-hapi-angular' >new skeleton</a> has been created that incorporates Hapi along with Angular.js and Browserify.</p>
+
+<h4 id="updatingexpress">Updating Express</h4>
+
+<p>The existing <a href='http://expressjs.com/' >Express</a> server received a huge overhaul.  It's now up to date with the latest Express <code>4.7.2</code> after being stuck at <code>3.4</code> for awhile.  Additionally all of the other dependencies have been updated to the latest and any required code changes as a result of those updates have been included.</p>
+
+<h4 id="addingexpresssocketio">Adding Express + Socket.io</h4>
+
+<p>New with <code>2.3</code> is an Express server that comes with <a href='http://socket.io/' >Socket.io</a>. Some of the most frequent questions I get are how to get socket.io set up with Mimosa such that Mimosa's live reload uses it. This new server option comes with that already set up.</p>
+
+<h3 id="newrpmpackagingmodule">New RPM Packaging Module</h3>
+
+<p><a href='https://github.com/dretay/mimosa-rpm-package' >mimosa-rpm-package</a> works much like the popular web-package module, but uses <a href='https://github.com/panitw/easy-rpm' >easy-rpm</a> to create an RPM archive of an application.</p>
+
+<h3 id="serverreloadfixedup">server-reload Fixed Up</h3>
+
+<p><a href='https://github.com/dbashford/mimosa-server-reload' >mimosa-server-reload</a>, which will restart your node server when server assets change, has been plagued with timing issues going back to when it was created.  Like with the live-reload issue above, it took a few hacks to get it right, but the timing issue has been addressed.</p>
+
+<h3 id="acrosstheboardlibraryupdates">Across the Board Library Updates</h3>
+
+<p>Virtually every module (that I am responsible for) has had its dependencies updated.  Additionally those modules, like those responsible for <code>mimosa new</code> and the template compilers, now deliver the latest versions of client libraries and server assets.</p>
+
+<h3 id="alsofrom2220">Also, from <code>2.2.20</code></h3>
+
+<p>A few patch releases ago a small change to mimosa-require -- the module responsible for providing support for AMD/RequireJS applications (like optimization of assets, validation of paths) -- resulted in a 20% - 50% performance improvement for large (100+ file) applications.  Performance improvements will vary a bit depending on the sort of hardware you work with.</p>
+
+<h2 id="upnext">Up Next?</h2>
+
+<p>In the near-term:</p>
+
+<ul>
+<li>A few skeletons on the way including ones for Marionette and Ember, from myself and some others.</li>
+<li>A module for managing delivery of features via feature flags</li>
+<li>A module for managing ember.js module imports, a build-tool "resolver" of sorts, that will determine what files need to be required for your Ember application and make sure you do not have to manage pulling them all in yourself</li>
+<li>Tests for existing modules.</li>
+</ul>]]></description><link>http://127.0.0.1:2368/mimosa-2-3-released/</link><guid isPermaLink="false">4d2988e3-d471-4c68-bb5d-948fab51c0f8</guid><dc:creator><![CDATA[David Bashford]]></dc:creator><pubDate>Wed, 13 Aug 2014 00:22:06 GMT</pubDate></item><item><title><![CDATA[Mimosa vs Gulp/Cake/Grunt/Broccoli?]]></title><description><![CDATA[<p><a href='https://twitter.com/MyCozyCloud' >@mycozycloud</a> put together a <a href='http://blog.cozycloud.cc/technic/2014/06/18/task-runners-comparison/' >blog post a few days back</a> that compared Grunt vs Cake vs Gulp vs Broccoli.  It filled up my Twitter feed yesterday.  JavaScript Daily posted it.  It blew up more.</p>
+
+<p>The winner? Broccoli. Why?</p>
+
+<blockquote>
+  <p>It’s the most flexible tool and the more concise one.</p>
+</blockquote>
+
+<h3 id="howdoesmimosastandup">How does Mimosa stand up?</h3>
+
+<p>It wins!</p>
+
+<p><a href='https://github.com/dbashford/MimosaJustACoffeeScriptFile' >Here's a repo with the example app.</a></p>
+
+<p>This is the config.</p>
+
+<pre><code>exports.config = {  
+  "modules": ["coffeescript", "coffeelint", "jshint"]
+}
+</code></pre>
+
+<p>3 actual lines. 2 real lines. It compiles the CoffeeScript file and tosses in inline source maps for free.</p>
+
+<h3 id="extracredit">Extra Credit</h3>
+
+<p>It will also run <a href='http://www.coffeelint.org/' >CoffeeLint</a> on the CoffeeScript and <a href='http://www.jshint.com/' >JSHint</a> on the compiled JavaScript. Go ahead, add a really long line of CoffeeScript and watch CoffeeLint tell you it doesn't care for it: <code>CoffeeLint: Line exceeds maximum allowed length</code>.  Then add <code>foo['bar'] = baz</code> and watch JSHint chide you: <code>['bar'] is better written in dot notation</code>. </p>
+
+<p>And with the extra functionality, the config stays shorter than all the others.</p>
+
+<h3 id="extraextracredit">Extra Extra Credit</h3>
+
+<p>Want to minify it?</p>
+
+<p>Add <code>minify-js</code> to the list of <code>modules</code>.  Run <code>mimosa build -m</code>.</p>
+
+<h3 id="problem">Problem</h3>
+
+<p>It was a verrrrrrrrrrrry simple, unrealistic test case that was used to compare the various tools.</p>
+
+<h3 id="conclusion">Conclusion</h3>
+
+<p>All this really proves is that given a very poor example, Mimosa blows away the competition for ease of use. The last thing I'm interested in doing is poking at the other tools based on this naive example.</p>
+
+<p>But still, no matter the use case, I think this makes it clear that Mimosa is a contender and is worth consideration.</p>]]></description><link>http://127.0.0.1:2368/mimosa-vs-the-others/</link><guid isPermaLink="false">731934ce-f8f5-4a87-9dad-78a338c81bdf</guid><dc:creator><![CDATA[David Bashford]]></dc:creator><pubDate>Sat, 21 Jun 2014 19:53:06 GMT</pubDate></item><item><title><![CDATA[Adhoc Modules: Custom Tasks &amp; Baby Steps Towards Publishing Modules]]></title><description><![CDATA[<p>The <a href='https://github.com/dbashford/mimosa-adhoc-module' >adhoc-module</a> Mimosa module is real easy to use and makes adding custom build behavior a piece of cake.  It is also a <strong>great</strong> gateway to learning how to build Mimosa modules that you wish to deploy to NPM for community use.</p>
+
+<h2 id="needtrulycustombehaviorinyourbuild">Need Truly Custom Behavior in Your Build?</h2>
+
+<p>Need some really specific functionality built into your Mimosa build?  Maybe you need to do some install-time code manipulating.  Or maybe you need to be able to swap out values of JavaScript properties based on your target environment.  Possibly you have a deployable product and you need each deploy to vary slightly (different skin?) and you'd love Mimosa to handle that for you.</p>
+
+<p>Until recently, you had three options:</p>
+
+<ol>
+<li>You could hope the task you need to perform was available as a module already.  Most modules, though, are meant to be general in their function.  So you might strike out quickly here.  </li>
+<li>You could create your own module and stick it in NPM. That may not be desirable for you, though.  You may not want to have to maintain it, and you may not want to expose any of what you might be doing at work in the form of a module.  </li>
+<li>You could create a module locally, in your project or within your company's code repos, and <code>mimosa mod:install</code> it.  This introduces another build step, though.  Now all your developers have to make sure to <code>mod:install</code> a specific piece of code.  And it means you may have another repo to manage.</li>
+</ol>
+
+<h2 id="entertheadhocmodule">Enter the Adhoc Module</h2>
+
+<p>The <a href='https://github.com/dbashford/mimosa-adhoc-module' >adhoc-module</a> was released recently and it allows you to create modules within your code base and <code>require</code> them right into your project.</p>
+
+<p>This module has a dead simple config:</p>
+
+<pre><code>adhocModule: {  
+  modules: []
+}
+</code></pre>
+
+<p>The <code>modules</code> array should contain <code>require</code>d in stripped-down mimosa modules. </p>
+
+<p>You would include adhoc modules like this:</p>
+
+<pre><code>adhocModule: {  
+  modules: [
+      require('./scripts/perform-transforms'),
+    require('./scripts/deploy-to-heroku')
+  ]
+}
+</code></pre>
+
+<p>The paths above point at node code in the <code>./scripts</code> directory. That code must expose a <code>registration</code> function that serves the exact same function as the <code>registration</code> function of any module you have plugged into your project.</p>
+
+<p>In the case above, two modules are included. You can add as many as you wish.</p>
+
+<h2 id="whatisregistration">What is <code>registration</code>?</h2>
+
+<p>For a complete rundown of how <code>registration</code> works, check the <a href='http://dbashford.github.io/making-a-mimosa-module/index.html' >blog post on creating modules</a>. That post is much larger in scope, though, so you may just want to keep reading, I'll cover it here in brief.</p>
+
+<p>The <code>registration</code> function exposed by your adhoc modules is called as Mimosa is first starting up.  It is a Mimosa module's (and adhoc module's) means to associate the execution of some code with a specific step in a Mimosa build.</p>
+
+<p>The <code>registration</code> function is passed the <code>mimosaConfig</code> which contains the full configuration for your project's Mimosa process, including anything you've included in your own <code>mimosa-config.js/coffee</code>.  The <code>registration</code> function is also passed a <code>register</code> function which when executed with the right parameters will notify Mimosa that it needs to call your code at a given point in Mimosa's processing.</p>
+
+<p><code>register</code> takes 4 parameters and when executed it plugs your code into the right place in Mimosa's processing.</p>
+
+<ul>
+<li>The 1st parameter tells Mimosa during which build workflow the passed callback (3rd parameter) should be executed.  The <a href='http://mimosa.io/modules.html' #create">Mimosa web site</a> covers all the various build workflows. Workflows include <code>add</code>/<code>update</code>/<code>remove</code>, <code>buildFile</code>, <code>buildDone</code>, and so on.</li>
+<li>The 2nd parameter tells Mimosa what step during the workflow to execute the callback.  Each workflow has a set of steps like <code>beforeRead</code>, <code>afterCompile</code>, and <code>package</code>. The complete set of workflow/steps can be seen by <a href='https://github.com/dbashford/mimosa/blob/master/src/util/workflow.coffee' #L19-L30">checking out the code</a>.</li>
+<li>The 3rd parameter is the callback.  This should be a reference to a JavaScript function that contains the code you want to execute at the specific build workflow and build step.  The callback is passed the <code>mimosaConfig</code>, an <code>options</code> object that contains information any files being currently processed, and a callback that is to be called when the module has finished its task.</li>
+<li>The 4th parameter is optional.  If your adhoc module is meant to process individual files, like JavaScript files, this parameter is your chance to make sure that your callback is only called with the right files.  This parameter is an array of file extensions.  Ex: <code>['html','htm']</code>.</li>
+</ul>
+
+<h2 id="usingregistration">Using <code>registration</code></h2>
+
+<p>At my day job we use adhoc modules extensively. Here's a quick <code>registration</code> function for one of our adhoc modules.</p>
+
+<pre><code>var _execute = function( mimosaConfig, options, next ) {  
+  // do something
+  next();
+};
+
+var _clean = ...
+
+exports.registration = function( mimosaConfig, register ) {  
+  if ( mimosaConfig.isBuild &amp;&amp; mimosaConfig.isPackage ) {
+    register( ["postBuild"], "beforeInstall", _execute );
+  }
+  register( ['preClean'], 'init', _clean );
+};
+</code></pre>
+
+<p>You can see the <code>registration</code> function is only concerned with executing its code if the current process is a build (<code>mimosa build</code>) and if the <code>--package</code> flag has been used. In this case the <code>_execute</code> function is called during the <code>beforeInstall</code> step. This particular module (code omitted) performs transformations on server templates prior to deployment. Server-side code isn't usually in Mimosa's wheelhouse, but there's nothing stopping a Mimosa module from reading from the file system, making changes and writing back.</p>
+
+<p>This particular module also registers for the <code>preClean</code> step during which any assets it may have been responsible for writing during the <code>postBuild</code> step can be cleaned up.</p>
+
+<h2 id="useittolearnhowtobuildmodules">Use it to Learn How to Build Modules!</h2>
+
+<p>Using adhoc-modules locally is a <strong>great</strong> way to learn how to build larger modules that you may intend to distribute. It's super easy to get started.</p>
+
+<p>Just toss some code in a directory in your app, add <code>adhoc-module</code> to your node modules, wire up the config and you are off and running.  The hardest part to master is determining when to run your code. A little trial-and-error, printing out the <code>options</code> object will help out there.</p>]]></description><link>http://127.0.0.1:2368/adhoc-modules/</link><guid isPermaLink="false">24ff5c36-b6b0-499e-ac3b-6541509b5923</guid><dc:creator><![CDATA[David Bashford]]></dc:creator><pubDate>Tue, 27 May 2014 22:13:06 GMT</pubDate></item><item><title><![CDATA[Using React with Backbone/Require.js/Bower/Mimosa, 1 line of config]]></title><description><![CDATA[<p>This week I rolled out a <a href='https://github.com/dbashford/mimosa-react' >React compiler</a> for <a href='http://mimosa.io/' >Mimosa</a>. To show off how well the Mimosa and <a href='https://github.com/facebook/react' >React</a> play together, and how easy it is to get started, I put a <a href='https://github.com/dbashford/MimosaReactBackboneTodoList' >demo Todo app</a> together, because, lets face it, its not a thing unless there's a Todo app.</p>
+
+<p>The <a href='https://github.com/dbashford/MimosaReactBackboneTodoList' >demo Todo app</a> is a Backbone project that uses React for views,  Require.js for module loading and Bower for dependency management. That is all managed by Mimosa, the build tool, which also kicks in server support, live reload, JSX compiling, JSHinting, concatenation and minification.</p>
+
+<h2 id="backingupreact">Backing up, React</h2>
+
+<p>I was in attendance at <a href='http://2013.jsconf.us/' >JSConf 2013</a> when React was introduced.  It was immediately ripped apart by the folks in the room.  Twitter was red with the blood of a fresh new UI framework victim.  The critiques can be boiled down to "Is that... XML embedded within JavaScript? OMG, die".</p>
+
+<p>Since then, React has not gone away.  It's gathered together over 5000 stargazers on GitHub and the buzz has increased.</p>
+
+<p>So, why?  Facebook threw up a <a href='http://facebook.github.io/react/blog/2013/06/05/why-react.html' >blog post</a> on "why react", and one of the key reasons is...</p>
+
+<h2 id="speedbabyspeed">Speed, Baby, Speed</h2>
+
+<p>Rather than screw up an explanation, here's the important part from the "why react" blog post.</p>
+
+<blockquote>
+  <p>When your component is first initialized, the render method is called, generating a lightweight representation of your view. From that representation, a string of markup is produced, and injected into the document. When your data changes, the render method is called again. In order to perform updates as efficiently as possible, we diff the return value from the previous call to render with the new one, and generate a minimal set of changes to be applied to the DOM.</p>
+</blockquote>
+
+<p>It's the diff that is the win.  And at least until <a href='https://github.com/tildeio/htmlbars' >HTMLBars</a> comes out, it seems to be the big speed winner.</p>
+
+<h2 id="anditsjusttheview">And its just the View</h2>
+
+<p>Again, quoting React:</p>
+
+<blockquote>
+  <p>Lots of people use React as the V in MVC. Since React makes no assumptions about the rest of your technology stack, it's easy to try it out on a small feature in an existing project.</p>
+</blockquote>
+
+<p>React blends nicely with your existing stack as the View, especially if your UI stack doesn't place a hard dependency on its View layer. Like, for instance, if you are using...</p>
+
+<h2 id="backbone">Backbone</h2>
+
+<p>Backbone needs no introduction, but unlike some of the other leading client-side frameworks, Backbone places no limitation on your templating language. Underscore, Dust, Handlebars, whatever.</p>
+
+<p>What you lose is tight integration and data-binding for free (unless you are using, say, <a href='http://www.ractivejs.org/' >Ractive</a> for your templating solution).</p>
+
+<p>Backbone's loose coupling and React play together nicely.  Instagram is, for instance, "a 'single page' web app built entirely with React and Backbone.Router."</p>
+
+<p>The popular <a href='http://todomvc.com/' >TodoMVC site</a> has a great <a href='http://todomvc.com/labs/architecture-examples/react-backbone/' >example of using Backbone and React together</a>.</p>
+
+<h2 id="xmlinyourjs">XML in your JS</h2>
+
+<p>One of the chief concerns with React is all the <a href='http://facebook.github.io/react/docs/jsx-in-depth.html' >XML in your JavaScript</a>.  Facebook calls it JSX.</p>
+
+<pre><code>var HelloMessage = React.createClass({  
+  render: function() {
+    return &lt;div&gt;Hello {this.props.name}&lt;/div&gt;;
+  }
+});
+</code></pre>
+
+<p>Yeah, so, maybe count me in the group of folks who is sort of put off by that. I just spent the better part of a decade hammering home to junior developers that markup in your JavaScript is bad. But its probably something I can get used to, probably.</p>
+
+<p>Anyone looking at that might also realize that every JavaScript runtime they know of will not be happy with that.</p>
+
+<p>So, as you probably would expect, that code needs to be compiled/transpiled.</p>
+
+<h2 id="compilingjsx">Compiling JSX</h2>
+
+<p>In the <a href='http://todomvc.com/labs/architecture-examples/react-backbone/' >Backbone/React Todo example</a> a <a href='http://todomvc.com/labs/architecture-examples/react-backbone/bower_components/react/JSXTransformer.js' >library loaded in the browser</a> performs the compiling.  But we all know that's not a good idea.  It works great for demos, but it won't for your app.</p>
+
+<p>Facebook created <a href='https://www.npmjs.org/package/react-tools' >react-tools</a> which can, among other things, be used to compile JSX on the server.</p>
+
+<h2 id="mimosareact">mimosa-react</h2>
+
+<p>I created the <a href='https://github.com/dbashford/mimosa-react' >JSX/React compiler for Mimosa</a> specifically to wrap react-tools and allow Mimosa devs to compile <code>.jsx</code> on the fly. As with all the other Mimosa compilers, when you are running <code>mimosa watch</code> Mimosa will recompile your <code>.jsx</code> and if you are using live-reload, refresh your page immediately.</p>
+
+<h2 id="mimosareacttodoapp">Mimosa React Todo App</h2>
+
+<p>To show the compiler off, but also to show React working within a larger, more fully-featured Mimosa application I started with the TodoMVC example and made the <a href='https://github.com/dbashford/MimosaReactBackboneTodoList' >MimosaReactBackboneTodo demo app</a>.</p>
+
+<p>Here's the config for the Todo app. No other config is needed.</p>
+
+<pre><code>  "modules": [
+    "copy",
+    "server",
+    "jshint",
+    "require",
+    "minify-js",
+    "minify-css",
+    "minify-img",
+    "live-reload",
+    "bower",
+    "react"
+  ]
+</code></pre>
+
+<p>This gives you...</p>
+
+<ul>
+<li>React compiling</li>
+<li>jshinting of compiled JavaScript</li>
+<li>concatenation via r.js</li>
+<li>minification of JavaScript, CSS and images</li>
+<li>bower support</li>
+<li>require.js support like path verification</li>
+<li>live-reload</li>
+<li>hooks into the node server that comes with the project.</li>
+</ul>
+
+<h2 id="giveitatry">Give it a try!</h2>
+
+<ol>
+<li><code>npm install -g mimosa</code>  </li>
+<li><code>git clone https://github.com/dbashford/MimosaReactBackboneTodoList react</code>  </li>
+<li><code>cd react</code>  </li>
+<li><code>mimosa watch --server</code> or <code>mimosa watch -s</code>  </li>
+<li>Open <a href='http://localhost:3000/' >localhost:3000</a></li>
+</ol>
+
+<p>Enjoy!  Any questions, just ask!</p>]]></description><link>http://127.0.0.1:2368/using-react-with-backbonerequire-jsbowermimosa-1-line-of-config/</link><guid isPermaLink="false">dcb6c398-4f70-4706-b28a-c173b2f0838f</guid><dc:creator><![CDATA[David Bashford]]></dc:creator><pubDate>Fri, 14 Mar 2014 16:15:54 GMT</pubDate></item><item><title><![CDATA[ember.js, es6 modules, and some unfortunate transpiler behavior]]></title><description><![CDATA[<h3 id="itsembersfault">It's Ember's Fault</h3>
 
 <p>In January my team at <a href='http://bericotechnologies.com/' >Berico</a> started doing a lot of work with <a href='http://emberjs.com/' >Ember</a>. We'll probably have a good dozen folks writing Ember apps in the near future. Ember has a steep learning curve, but the higher up that curve we get, the happier we are with the decision. There is just a tremendous amount of power there.</p>
 
